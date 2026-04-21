@@ -58,6 +58,12 @@ object KtorWeatherApi {
 
         val weatherResponseDTO : WeatherResponseDTO = response.body()
 
+        weatherResponseDTO.list.forEach {weatherEntity  ->
+            weatherEntity.weather.forEach {
+                it.icon = "https://openweathermap.org/img/wn/${it.icon}@4x.png"
+            }
+        }
+
         return weatherResponseDTO.list
     }
 
@@ -88,10 +94,10 @@ data class WeatherEntity(
 }
 
 @Serializable
-data class DescriptionEntity(val description: String, val icon: String)
+data class DescriptionEntity(val description: String, var icon: String)
 
 @Serializable
-data class WindEntity(val speed: Double)
+data class WindEntity(var speed: Double)
 
 @Serializable //KotlinX impose cette annotation
 data class TempEntity(val temp: Double)
