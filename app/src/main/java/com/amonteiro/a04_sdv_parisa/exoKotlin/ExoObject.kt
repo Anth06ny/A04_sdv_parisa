@@ -51,6 +51,10 @@ class RandomName {
         }
     }
 
+    fun temp(){
+    }
+
+
     fun nextDiff(): String {
         var newValue = next()
         while(newValue == oldValue) {
