@@ -1,4 +1,4 @@
-package com.amonteiro.a04_sdv_parisa.ui.theme
+package com.amonteiro.a04_sdv_parisa.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
