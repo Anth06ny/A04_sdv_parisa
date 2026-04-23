@@ -40,6 +40,7 @@ class MainViewModel : ViewModel() {
     val errorMessage = MutableStateFlow("")
 
     init {
+        println("init MainViewModel")
         loadFakeData(true, "Une erreur")
     }
 

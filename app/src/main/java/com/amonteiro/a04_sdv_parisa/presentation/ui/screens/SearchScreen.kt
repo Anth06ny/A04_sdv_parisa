@@ -1,6 +1,8 @@
 package com.amonteiro.a04_sdv_parisa.presentation.ui.screens
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,9 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -26,6 +26,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -63,9 +68,12 @@ fun SearchScreenPreview() {
 fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = MainViewModel()) {
     Column(modifier = modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
 
-        val list = mainViewModel.dataList.collectAsStateWithLifecycle().value
 
-        SearchBar()
+        val searchText: MutableState<String> = remember { mutableStateOf("") }
+
+        val list = mainViewModel.dataList.collectAsStateWithLifecycle().value.filter { it.name.contains(searchText.value, ignoreCase = true) }
+
+        SearchBar(searchText = searchText)
 
         //Permet de remplacer très facilement le RecyclerView. LazyRow existe aussi
         LazyColumn(
@@ -80,7 +88,7 @@ fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = M
         Row {
 
             Button(
-                onClick = { /* Do something! */ },
+                onClick = { searchText.value = "" },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {
                 Icon(
@@ -108,11 +116,12 @@ fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = M
 }
 
 @Composable
-fun SearchBar(modifier: Modifier = Modifier) {
+fun SearchBar(modifier: Modifier = Modifier, searchText: MutableState<String>) {
 
     TextField(
-        value = "", //Valeur affichée
+        value = searchText.value, //Valeur affichée
         onValueChange = { newValue: String ->
+            searchText.value = newValue
 
 
         }, //Nouveau texte entrée
@@ -144,9 +153,14 @@ fun SearchBar(modifier: Modifier = Modifier) {
 
 @Composable //Composable affichant 1 élément
 fun PictureRowItem(modifier: Modifier = Modifier, data: WeatherEntity) {
-    Row(modifier = modifier
-        .background(MaterialTheme.colorScheme.tertiaryContainer)
-        .fillMaxWidth()) {
+
+    var expended by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .fillMaxWidth()
+    ) {
         //Permission Internet nécessaire
         AsyncImage(
             model = data.weather.firstOrNull()?.icon,
@@ -167,9 +181,21 @@ fun PictureRowItem(modifier: Modifier = Modifier, data: WeatherEntity) {
                 .heightIn(max = 100.dp)
                 .widthIn(max = 100.dp)
         )
-        Column(modifier = Modifier.padding(10.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+                .clickable {
+                    expended = !expended
+                }) {
             Text(text = data.name, fontSize = 20.sp)
-            Text(text = data.getResume().take(20) + "...", fontSize = 14.sp, color = MaterialTheme.colorScheme.onTertiaryContainer)
+
+            Text(
+                text = if (expended) data.getResume() else (data.getResume().take(20) + "..."),
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.animateContentSize()
+            )
         }
 
     }
