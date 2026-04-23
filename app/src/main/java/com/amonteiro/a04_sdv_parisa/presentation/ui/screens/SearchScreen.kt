@@ -109,9 +109,13 @@ fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = M
 
 @Composable
 fun SearchBar(modifier: Modifier = Modifier) {
+
     TextField(
         value = "", //Valeur affichée
-        onValueChange = { newValue: String -> }, //Nouveau texte entrée
+        onValueChange = { newValue: String ->
+
+
+        }, //Nouveau texte entrée
         leadingIcon = { //Image d'icône
             Icon(
                 imageVector = Icons.Default.Search,
