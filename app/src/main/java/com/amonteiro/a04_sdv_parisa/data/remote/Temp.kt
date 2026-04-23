@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -14,6 +15,10 @@ fun main() = runBlocking {
 
     // 1) CoroutineScope custom avec un Job + un Dispatcher
     val scope = CoroutineScope(Job() + Dispatchers.Default)
+
+    scope.launch {
+        println("Tâche 1 démarrée sur ${Thread.currentThread().name}")
+    }
 
     // 2) launch : "fire & forget", ne renvoie pas de résultat
     val job1 = scope.launch {
@@ -27,6 +32,7 @@ fun main() = runBlocking {
         delay(500)
         println("Tâche 2 terminée")
     }
+
 
     // On attend les deux coroutines avant de continuer
     job1.join()
