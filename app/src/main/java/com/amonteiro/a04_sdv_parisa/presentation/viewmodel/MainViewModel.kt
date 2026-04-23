@@ -41,12 +41,13 @@ class MainViewModel : ViewModel() {
 
     init {
         println("init MainViewModel")
-        loadFakeData(true, "Une erreur")
+        //loadFakeData(true, "Une erreur")
     }
 
     fun loadWeathers(cityName: String) {
 
         runInProgress.value = true
+        errorMessage.value =  ""
 
 
         viewModelScope.launch(Dispatchers.IO) {

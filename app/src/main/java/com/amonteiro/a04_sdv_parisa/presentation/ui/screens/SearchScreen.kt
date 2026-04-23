@@ -1,6 +1,8 @@
 package com.amonteiro.a04_sdv_parisa.presentation.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,16 +22,19 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,9 +45,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.amonteiro.a04_sdv_parisa.R
 import com.amonteiro.a04_sdv_parisa.data.remote.WeatherEntity
+import com.amonteiro.a04_sdv_parisa.presentation.ui.MyError
 import com.amonteiro.a04_sdv_parisa.presentation.ui.theme.A04_sdv_parisaTheme
 import com.amonteiro.a04_sdv_parisa.presentation.viewmodel.MainViewModel
 
@@ -57,23 +64,61 @@ fun SearchScreenPreview() {
     //Utilisé par exemple dans MainActivity.kt sous setContent {...}
     A04_sdv_parisaTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+
+            val mainViewModel : MainViewModel = viewModel()
+            mainViewModel.loadFakeData(false, "")
+
             SearchScreen(
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                mainViewModel = mainViewModel
+            )
+        }
+    }
+}
+
+@Preview(
+    showBackground = true, showSystemUi = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+)
+@Composable
+fun SearchScreenErrorPreview() {
+    //Il faut remplacer NomVotreAppliTheme par le thème de votre application
+    //Utilisé par exemple dans MainActivity.kt sous setContent {...}
+    A04_sdv_parisaTheme {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+
+            val mainViewModel : MainViewModel = viewModel()
+            mainViewModel.loadFakeData(true, "Une erreur")
+
+            SearchScreen(
+                modifier = Modifier.padding(innerPadding),
+                mainViewModel = mainViewModel
             )
         }
     }
 }
 
 @Composable
-fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = MainViewModel()) {
+fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel()) {
     Column(modifier = modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
 
+        LaunchedEffect("") {
+            mainViewModel.loadWeathers("Paris")
+        }
 
-        val searchText: MutableState<String> = remember { mutableStateOf("") }
+        val searchText: MutableState<String> = rememberSaveable { mutableStateOf("") }
 
         val list = mainViewModel.dataList.collectAsStateWithLifecycle().value.filter { it.name.contains(searchText.value, ignoreCase = true) }
+        val runInProgress by mainViewModel.runInProgress.collectAsStateWithLifecycle()
+        val errorMessage by mainViewModel.errorMessage.collectAsStateWithLifecycle()
 
         SearchBar(searchText = searchText)
+
+        MyError(errorMessage = errorMessage)
+
+        AnimatedVisibility(runInProgress) {
+            CircularProgressIndicator()
+        }
 
         //Permet de remplacer très facilement le RecyclerView. LazyRow existe aussi
         LazyColumn(
@@ -100,7 +145,7 @@ fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = M
                 Text(stringResource(R.string.bt_clear))
             }
             Button(
-                onClick = { /* Do something! */ },
+                onClick = { mainViewModel.loadWeathers(searchText.value) },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {
                 Icon(
